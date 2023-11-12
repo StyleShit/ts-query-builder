@@ -4,6 +4,10 @@
 	"description": "A type-safe query builder for SQL databases, heavily inspired by Laravel's Query Builder",
 	"author": "StyleShit",
 	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/StyleShit/ts-query-builder"
+	},
 	"type": "module",
 	"main": "dist/index.js",
 	"module": "dist/index.js",
