@@ -1,6 +1,6 @@
 {
 	"name": "@styleshit/query-builder",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"description": "A type-safe query builder for SQL databases, heavily inspired by Laravel's Query Builder",
 	"author": "StyleShit",
 	"license": "MIT",
