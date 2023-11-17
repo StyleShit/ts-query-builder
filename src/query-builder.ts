@@ -5,6 +5,7 @@ import {
 	NullableColumns,
 	Operator,
 	Relation,
+	SameTypeColumns,
 	Where,
 } from './types';
 
@@ -94,6 +95,43 @@ export class QueryBuilder<
 		return this.whereNotNull(column, 'OR');
 	}
 
+	whereColumn<
+		TCurrentColumn extends TColumn,
+		TOtherColumn extends Exclude<
+			SameTypeColumns<TDatabase, TTable, TCurrentColumn, TTable>,
+			TCurrentColumn
+		>,
+	>(
+		column: TCurrentColumn,
+		operator: Operator,
+		otherColumn: TOtherColumn,
+		relation: Relation = 'AND',
+	): this {
+		this.whereClauses.push({
+			type: 'column',
+			leftColumn: column.toString(),
+			operator,
+			rightColumn: otherColumn.toString(),
+			relation,
+		});
+
+		return this;
+	}
+
+	orWhereColumn<
+		TCurrentColumn extends TColumn,
+		TOtherColumn extends Exclude<
+			SameTypeColumns<TDatabase, TTable, TCurrentColumn, TTable>,
+			TCurrentColumn
+		>,
+	>(
+		column: TCurrentColumn,
+		operator: Operator,
+		otherColumn: TOtherColumn,
+	): this {
+		return this.whereColumn(column, operator, otherColumn, 'OR');
+	}
+
 	join<TOtherTable extends Exclude<keyof TDatabase, TTable>>(
 		otherTable: TOtherTable,
 		joinCallback: (
@@ -108,7 +146,7 @@ export class QueryBuilder<
 			'SELECT',
 			this.compileColumns(),
 			'FROM',
-			this.table.toString(),
+			this.wrapWithBackticks(this.table.toString()),
 		];
 
 		const whereClauses = this.compileWheres();
@@ -139,26 +177,58 @@ export class QueryBuilder<
 
 		for (const whereClause of this.whereClauses) {
 			switch (whereClause.type) {
-				case 'basic':
-					wheres.push(
-						`${whereClause.relation} ${whereClause.column} ${whereClause.operator} ${whereClause.value}`,
-					);
-					break;
+				case 'basic': {
+					const column = this.wrapWithBackticks(whereClause.column);
 
-				case 'null':
 					wheres.push(
-						`${whereClause.relation} ${whereClause.column} IS NULL`,
+						`${whereClause.relation} ${column} ${whereClause.operator} ${whereClause.value}`,
 					);
 					break;
+				}
 
-				case 'not-null':
+				case 'null': {
+					const column = this.wrapWithBackticks(whereClause.column);
+
+					wheres.push(`${whereClause.relation} ${column} IS NULL`);
+					break;
+				}
+
+				case 'not-null': {
+					const column = this.wrapWithBackticks(whereClause.column);
+
 					wheres.push(
-						`${whereClause.relation} ${whereClause.column} IS NOT NULL`,
+						`${whereClause.relation} ${column} IS NOT NULL`,
 					);
 					break;
+				}
+
+				case 'column': {
+					const leftColumn = this.wrapWithBackticks(
+						whereClause.leftColumn,
+					);
+
+					const rightColumn = this.wrapWithBackticks(
+						whereClause.rightColumn,
+					);
+
+					wheres.push(
+						`${whereClause.relation} ${leftColumn} ${whereClause.operator} ${rightColumn}`,
+					);
+					break;
+				}
 			}
 		}
 
 		return wheres.join(' ');
+	}
+
+	private wrapWithBackticks<T extends string | string[]>(value: T): T {
+		if (Array.isArray(value)) {
+			return value.map(this.wrapWithBackticks) as T;
+		}
+
+		const sanitized = value.replace(/[^a-zA-Z0-9_-]/g, '');
+
+		return `\`${sanitized}\`` as T;
 	}
 }

@@ -10,7 +10,7 @@ describe('Query Builder', () => {
 		const sql = usersBuilder.select('*').build();
 
 		// Assert.
-		expect(sql).toBe('SELECT * FROM users');
+		expect(sql).toBe('SELECT * FROM `users`');
 	});
 
 	it('should build a simple select query with specific columns', () => {
@@ -21,7 +21,7 @@ describe('Query Builder', () => {
 		const sql = usersBuilder.select(['id', 'userName']).build();
 
 		// Assert.
-		expect(sql).toBe('SELECT id, userName FROM users');
+		expect(sql).toBe('SELECT id, userName FROM `users`');
 	});
 
 	it('should build a query with basic where clauses', () => {
@@ -37,7 +37,7 @@ describe('Query Builder', () => {
 
 		// Assert.
 		expect(sql).toBe(
-			'SELECT id, userName FROM users WHERE 1 = 1 AND id = 1 OR userName = admin',
+			'SELECT id, userName FROM `users` WHERE 1 = 1 AND `id` = 1 OR `userName` = admin',
 		);
 	});
 
@@ -54,7 +54,7 @@ describe('Query Builder', () => {
 
 		// Assert.
 		expect(sql).toBe(
-			'SELECT * FROM posts WHERE 1 = 1 AND comments IS NULL OR likes IS NULL',
+			'SELECT * FROM `posts` WHERE 1 = 1 AND `comments` IS NULL OR `likes` IS NULL',
 		);
 	});
 
@@ -71,7 +71,24 @@ describe('Query Builder', () => {
 
 		// Assert.
 		expect(sql).toBe(
-			'SELECT * FROM posts WHERE 1 = 1 AND comments IS NOT NULL OR likes IS NOT NULL',
+			'SELECT * FROM `posts` WHERE 1 = 1 AND `comments` IS NOT NULL OR `likes` IS NOT NULL',
+		);
+	});
+
+	it('should build a query where `column-1 = column-2` where clauses', () => {
+		// Arrange.
+		const postsBuilder = createBuilder('posts');
+
+		// Act.
+		const sql = postsBuilder
+			.select('*')
+			.whereColumn('id', '=', 'userId')
+			.orWhereColumn('comments', '=', 'likes')
+			.build();
+
+		// Assert.
+		expect(sql).toBe(
+			'SELECT * FROM `posts` WHERE 1 = 1 AND `id` = `userId` OR `comments` = `likes`',
 		);
 	});
 });

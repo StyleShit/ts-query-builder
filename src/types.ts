@@ -22,6 +22,13 @@ export type Where =
 			type: 'not-null';
 			column: string;
 			relation: Relation;
+	  }
+	| {
+			type: 'column';
+			leftColumn: string;
+			operator: Operator;
+			rightColumn: string;
+			relation: Relation;
 	  };
 
 /**
