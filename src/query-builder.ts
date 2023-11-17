@@ -5,16 +5,20 @@ import { ColumnType, Database, Operator } from './types';
 
 export class QueryBuilder<
 	TDatabase extends Database,
-	TTable extends keyof TDatabase,
+	TTable extends keyof TDatabase & string,
 	TColumn extends keyof TDatabase[TTable] = keyof TDatabase[TTable],
 > {
 	private table: TTable;
+
+	private columns: TColumn[] | '*' = '*';
 
 	constructor(table: TTable) {
 		this.table = table;
 	}
 
 	select(columns: '*' | TColumn[]): this {
+		this.columns = columns;
+
 		return this;
 	}
 
@@ -36,6 +40,16 @@ export class QueryBuilder<
 	}
 
 	build(): string {
-		return '';
+		const columns = this.compileColumns();
+
+		return `SELECT ${columns} FROM ${this.table}`;
+	}
+
+	private compileColumns(): string {
+		if (this.columns === '*') {
+			return '*';
+		}
+
+		return this.columns.join(', ');
 	}
 }

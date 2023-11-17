@@ -1,27 +1,27 @@
-import { describe, expectTypeOf, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { createBuilder as _createBuilder } from '../';
 
 describe('Query Builder', () => {
-	it('should build a simple query', () => {
+	it('should build a simple select query with all columns', () => {
 		// Arrange.
 		const usersBuilder = createBuilder('users');
 
 		// Act.
-		const sql = usersBuilder
-			.select(['id', 'userName'])
-			.where('isActive', '=', true)
-			.join('posts', (joinClause) => {
-				joinClause
-					.on('content', '=', 'asdasd')
-					.onColumn('posts.userId', '=', 'users.id');
-			})
-			.join('comments', (joinClause) => {
-				joinClause.onColumn('comments.userId', '=', 'users.id');
-			})
-			.build();
+		const sql = usersBuilder.select('*').build();
 
 		// Assert.
-		expectTypeOf(sql).toEqualTypeOf<string>();
+		expect(sql).toBe('SELECT * FROM users');
+	});
+
+	it('should build a simple select query with specific columns', () => {
+		// Arrange.
+		const usersBuilder = createBuilder('users');
+
+		// Act.
+		const sql = usersBuilder.select(['id', 'userName']).build();
+
+		// Assert.
+		expect(sql).toBe('SELECT id, userName FROM users');
 	});
 });
 
