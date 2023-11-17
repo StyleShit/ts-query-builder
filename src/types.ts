@@ -5,13 +5,24 @@ export type Operator = '>' | '<' | '=';
 
 export type Relation = 'AND' | 'OR';
 
-export type Where = {
-	type: 'basic';
-	column: string;
-	operator: Operator;
-	value: unknown;
-	relation: Relation;
-};
+export type Where =
+	| {
+			type: 'basic';
+			column: string;
+			operator: Operator;
+			value: unknown;
+			relation: Relation;
+	  }
+	| {
+			type: 'null';
+			column: string;
+			relation: Relation;
+	  }
+	| {
+			type: 'not-null';
+			column: string;
+			relation: Relation;
+	  };
 
 /**
  * Concat `TTable` and `TColumn` to be used in a `join` clause.
@@ -32,6 +43,20 @@ export type ColumnType<
 	TTable extends keyof TDatabase,
 	TColumn extends keyof TDatabase[TTable],
 > = TDatabase[TTable][TColumn];
+
+/**
+ * Get the nullable columns of `TTable`.
+ */
+export type NullableColumns<
+	TDatabase extends Database,
+	TTable extends keyof TDatabase,
+> = {
+	[C in keyof TDatabase[TTable]]: TDatabase[TTable][C] extends NonNullable<
+		TDatabase[TTable][C]
+	>
+		? never
+		: C;
+}[keyof TDatabase[TTable]];
 
 /**
  * Get a union of columns names from `TOtherTable` that are assignable to the type of `TColumn` from table `TTable`.

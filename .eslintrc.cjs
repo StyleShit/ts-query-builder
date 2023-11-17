@@ -21,5 +21,8 @@ module.exports = {
 		sourceType: 'module',
 	},
 	plugins: ['@typescript-eslint'],
-	rules: {},
+	rules: {
+		// Interferes with Prettier
+		'no-mixed-spaces-and-tabs': 'off',
+	},
 };

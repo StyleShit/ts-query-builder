@@ -40,6 +40,40 @@ describe('Query Builder', () => {
 			'SELECT id, userName FROM users WHERE 1 = 1 AND id = 1 OR userName = admin',
 		);
 	});
+
+	it('should build a query with `IS NULL` where clauses', () => {
+		// Arrange.
+		const postsBuilder = createBuilder('posts');
+
+		// Act.
+		const sql = postsBuilder
+			.select('*')
+			.whereNull('comments')
+			.orWhereNull('likes')
+			.build();
+
+		// Assert.
+		expect(sql).toBe(
+			'SELECT * FROM posts WHERE 1 = 1 AND comments IS NULL OR likes IS NULL',
+		);
+	});
+
+	it('should build a query with `IS NOT NULL` where clauses', () => {
+		// Arrange.
+		const postsBuilder = createBuilder('posts');
+
+		// Act.
+		const sql = postsBuilder
+			.select('*')
+			.whereNotNull('comments')
+			.orWhereNotNull('likes')
+			.build();
+
+		// Assert.
+		expect(sql).toBe(
+			'SELECT * FROM posts WHERE 1 = 1 AND comments IS NOT NULL OR likes IS NOT NULL',
+		);
+	});
 });
 
 function createBuilder<TTable extends keyof DatabaseSchema>(table: TTable) {
@@ -57,6 +91,8 @@ type DatabaseSchema = {
 		id: number;
 		userId: DatabaseSchema['users']['id'];
 		content: string;
+		likes: number | null;
+		comments: number | null;
 	};
 	comments: {
 		id: number;

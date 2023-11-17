@@ -1,5 +1,12 @@
 import { JoinClause } from './join-clause';
-import { ColumnType, Database, Operator, Relation, Where } from './types';
+import {
+	ColumnType,
+	Database,
+	NullableColumns,
+	Operator,
+	Relation,
+	Where,
+} from './types';
 
 /* eslint-disable @typescript-eslint/no-unused-vars -- Currently the code is types-only */
 
@@ -47,6 +54,44 @@ export class QueryBuilder<
 		value: ColumnType<TDatabase, TTable, TCurrentColumn>,
 	): this {
 		return this.where(column, operator, value, 'OR');
+	}
+
+	whereNull<TCurrentColumn extends NullableColumns<TDatabase, TTable>>(
+		column: TCurrentColumn,
+		relation: Relation = 'AND',
+	): this {
+		this.whereClauses.push({
+			type: 'null',
+			column: column.toString(),
+			relation,
+		});
+
+		return this;
+	}
+
+	orWhereNull<TCurrentColumn extends NullableColumns<TDatabase, TTable>>(
+		column: TCurrentColumn,
+	): this {
+		return this.whereNull(column, 'OR');
+	}
+
+	whereNotNull<TCurrentColumn extends NullableColumns<TDatabase, TTable>>(
+		column: TCurrentColumn,
+		relation: Relation = 'AND',
+	): this {
+		this.whereClauses.push({
+			type: 'not-null',
+			column: column.toString(),
+			relation,
+		});
+
+		return this;
+	}
+
+	orWhereNotNull<TCurrentColumn extends NullableColumns<TDatabase, TTable>>(
+		column: TCurrentColumn,
+	): this {
+		return this.whereNotNull(column, 'OR');
 	}
 
 	join<TOtherTable extends Exclude<keyof TDatabase, TTable>>(
@@ -97,6 +142,18 @@ export class QueryBuilder<
 				case 'basic':
 					wheres.push(
 						`${whereClause.relation} ${whereClause.column} ${whereClause.operator} ${whereClause.value}`,
+					);
+					break;
+
+				case 'null':
+					wheres.push(
+						`${whereClause.relation} ${whereClause.column} IS NULL`,
+					);
+					break;
+
+				case 'not-null':
+					wheres.push(
+						`${whereClause.relation} ${whereClause.column} IS NOT NULL`,
 					);
 					break;
 			}
