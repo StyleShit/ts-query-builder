@@ -23,6 +23,23 @@ describe('Query Builder', () => {
 		// Assert.
 		expect(sql).toBe('SELECT id, userName FROM users');
 	});
+
+	it('should build a query with basic where clauses', () => {
+		// Arrange.
+		const usersBuilder = createBuilder('users');
+
+		// Act.
+		const sql = usersBuilder
+			.select(['id', 'userName'])
+			.where('id', '=', 1)
+			.orWhere('userName', '=', 'admin')
+			.build();
+
+		// Assert.
+		expect(sql).toBe(
+			'SELECT id, userName FROM users WHERE 1 = 1 AND id = 1 OR userName = admin',
+		);
+	});
 });
 
 function createBuilder<TTable extends keyof DatabaseSchema>(table: TTable) {

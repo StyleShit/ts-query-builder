@@ -3,6 +3,16 @@ export type Database = Record<string, Table>;
 
 export type Operator = '>' | '<' | '=';
 
+export type Relation = 'AND' | 'OR';
+
+export type Where = {
+	type: 'basic';
+	column: string;
+	operator: Operator;
+	value: unknown;
+	relation: Relation;
+};
+
 /**
  * Concat `TTable` and `TColumn` to be used in a `join` clause.
  * Not extending `string` because of `keyof` issues in the `QueryBuilder` class.
